@@ -4,34 +4,52 @@ var io = require('socket.io')(http);
 var gamedig = require('gamedig');
 http.listen(2000);
 
-gamedig.fetchServer = function(port, _fnCallback) {
+gamedig.fetchServer = function(host, port) {
 	return new Promise(function(resolve, reject) {
 		gamedig.query({
 			type: 'quake2',
-			host: 'server.aq2chile.cl',
+			host: host,
 			port: port
 		}, function(state) {
 			if(state.error) reject({'error':'gamedig error'});
 			else resolve(state);
 		});
 	});
-}
+};
 
-app.get('/', function(req,res) {
+gamedig.fetchAllServers = function(_fnCallback) {
 	Promise.all([
-		gamedig.fetchServer(27910),
-		gamedig.fetchServer(27911),
-		gamedig.fetchServer(27912),
-		gamedig.fetchServer(27913)
+		gamedig.fetchServer('server.aq2chile.cl',27910),
+		gamedig.fetchServer('server.aq2chile.cl',27911),
+		gamedig.fetchServer('server.aq2chile.cl',27912),
+		gamedig.fetchServer('server.aq2chile.cl',27913),
+		gamedig.fetchServer('190.151.36.178',27910)
 	]).then(function(data) {
-		res.end(JSON.stringify(data));
+		if(_fnCallback && typeof _fnCallback === 'function') {
+			_fnCallback(data);
+		}
+	});
+};
+
+//Static service
+app.get('/', function(req,res) {
+	gamedig.fetchAllServers(function(servers) {
+		res.end(JSON.stringify(servers));
 	});
 });
 
-app.get('/socketio', function(req,res) {
-	io.on('connection', function() {
-
-	})
+//Socket service
+io.on('connection', function(socket) {
+	var fetch = function() {
+		gamedig.fetchAllServers(function(servers) {
+			socket.emit('servers', servers);
+		});
+	}
+	
+	fetch();
+	setInterval(function() {
+		fetch();
+	}, 5000);
 });
 
 console.log('Gamedig running at port 2000');
