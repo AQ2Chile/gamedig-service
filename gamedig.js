@@ -26,30 +26,34 @@ gamedig.fetchAllServers = function(_fnCallback) {
 		gamedig.fetchServer('190.151.36.178',27910)
 	]).then(function(data) {
 		if(_fnCallback && typeof _fnCallback === 'function') {
-			_fnCallback(data);
+			_fnCallback(true, data);
+		}
+	}, function() {
+		if(_fnCallback && typeof _fnCallback === 'function') {
+			_fnCallback(false);
 		}
 	});
 };
 
 //Static service
 app.get('/', function(req,res) {
-	gamedig.fetchAllServers(function(servers) {
-		res.end(JSON.stringify(servers));
+	gamedig.fetchAllServers(function(status, servers) {
+		if(!status) res.end('[]');
+		else res.end(JSON.stringify(servers));
 	});
 });
 
 //Socket service
 io.on('connection', function(socket) {
 	var fetch = function() {
-		gamedig.fetchAllServers(function(servers) {
-			socket.emit('servers', servers);
+		gamedig.fetchAllServers(function(status, servers) {
+			if(status)
+				socket.emit('servers', servers);
 		});
 	}
 	
 	fetch();
-	setInterval(function() {
-		fetch();
-	}, 5000);
+	setInterval(fetch, 5000);
 });
 
 console.log('Gamedig running at port 2000');
