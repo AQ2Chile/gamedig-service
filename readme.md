@@ -1,14 +1,11 @@
 # Gamedig Service
 
-## Dependencias
-
+## Instalation
 ```javascript
-npm install gamedig
-npm install express
-npm install socket.io
+npm install
 ```
 
-## Service
+## Run Service
 ```javascript
-screen -dmS gamedig node gamedig.js
+npm start
 ```
