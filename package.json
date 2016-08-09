@@ -1,8 +1,9 @@
 {
 	"name": "aq2chile-gamedig",
-	"version": "1.0.0",	
+	"version": "1.0.0",
 	"scripts": {
-		"start": "forever start -l gamedig.log -a --spinSleepTime 5000 gamedig.js"
+		"start": "forever start -l gamedig.log -a --spinSleepTime 5000 --pidFile gamedig.pid gamedig.js",
+		"stop": "forever stop --pidFile gamedig.pid gamedig.js"
 	},
 	"dependencies": {
 		"express": "^4",
